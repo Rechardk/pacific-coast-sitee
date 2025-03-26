@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Your Patio</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f4f4f4; }
+    nav { background: #008b8b; padding: 10px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; }
+    .container { display: flex; }
+    .sidebar { width: 200px; background: #fff; padding: 10px; border-right: 1px solid #ccc; }
+    .canvas-area { flex: 1; height: 80vh; background: #e0e0e0; position: relative; }
+    .draggable { width: 60px; margin: 10px auto; cursor: grab; }
+    .dropzone { position: absolute; border: 2px dashed #888; background: rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="design.html">Design Your Patio</a>
+  </nav>
+  <div class="container">
+    <div class="sidebar">
+      <h3>Elements</h3>
+      <img src="https://cdn-icons-png.flaticon.com/512/2356/2356932.png" class="draggable" draggable="true" alt="Chair" />
+      <img src="https://cdn-icons-png.flaticon.com/512/2356/2356929.png" class="draggable" draggable="true" alt="Table" />
+    </div>
+    <div class="canvas-area" id="canvasArea"></div>
+  </div>
+  <script>
+    const draggables = document.querySelectorAll('.draggable');
+    const canvas = document.getElementById('canvasArea');
+    draggables.forEach(elem => {
+      elem.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('src', e.target.src);
+      });
+    });
+    canvas.addEventListener('dragover', e => e.preventDefault());
+    canvas.addEventListener('drop', e => {
+      e.preventDefault();
+      const src = e.dataTransfer.getData('src');
+      const img = document.createElement('img');
+      img.src = src;
+      img.style.width = '60px';
+      img.style.position = 'absolute';
+      img.style.left = `${e.offsetX}px`;
+      img.style.top = `${e.offsetY}px`;
+      canvas.appendChild(img);
+    });
+  </script>
+</body>
+</html>
