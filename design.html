@@ -2,17 +2,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Design Your Patio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Design Your Patio - Phase 2</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f4f4f4; }
+    body { margin: 0; font-family: sans-serif; }
     nav { background: #008b8b; padding: 10px; text-align: center; }
     nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; }
-    .container { display: flex; }
-    .sidebar { width: 200px; background: #fff; padding: 10px; border-right: 1px solid #ccc; }
-    .canvas-area { flex: 1; height: 80vh; background: #e0e0e0; position: relative; }
-    .draggable { width: 60px; margin: 10px auto; cursor: grab; }
+
+    .toolbar {
+      background: #f0f0f0;
+      padding: 10px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .toolbar button {
+      background: #008b8b;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .toolbar img {
+      width: 40px;
+      height: 40px;
+      cursor: grab;
+    }
+
+    #canvas {
+      position: relative;
+      height: 80vh;
+      background: #e8f5f5;
+      overflow: hidden;
+    }
+
+    .element {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border: 2px solid #008b8b;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      cursor: move;
+    }
+
+    .element img {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
+
+    .reset-btn {
+      margin: 10px;
+      padding: 8px 16px;
+      background: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -20,34 +76,83 @@
     <a href="index.html">Home</a>
     <a href="design.html">Design Your Patio</a>
   </nav>
-  <div class="container">
-    <div class="sidebar">
-      <h3>Elements</h3>
-      <img src="https://cdn-icons-png.flaticon.com/512/2356/2356932.png" class="draggable" draggable="true" alt="Chair" />
-      <img src="https://cdn-icons-png.flaticon.com/512/2356/2356929.png" class="draggable" draggable="true" alt="Table" />
-    </div>
-    <div class="canvas-area" id="canvasArea"></div>
+
+  <div class="toolbar">
+    <img src="https://cdn-icons-png.flaticon.com/512/2356/2356932.png" draggable="true" data-type="chair" title="Chair" />
+    <img src="https://cdn-icons-png.flaticon.com/512/2356/2356929.png" draggable="true" data-type="table" title="Table" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046876.png" draggable="true" data-type="umbrella" title="Umbrella" />
+    <img src="https://cdn-icons-png.flaticon.com/512/2331/2331970.png" draggable="true" data-type="paver" title="Paver" />
+    <button class="reset-btn" onclick="clearCanvas()">Reset Canvas</button>
   </div>
+
+  <div id="canvas"></div>
+
   <script>
-    const draggables = document.querySelectorAll('.draggable');
-    const canvas = document.getElementById('canvasArea');
-    draggables.forEach(elem => {
-      elem.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('src', e.target.src);
+    const canvas = document.getElementById("canvas");
+    let zIndex = 1;
+
+    document.querySelectorAll(".toolbar img").forEach(item => {
+      item.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("type", e.target.dataset.type);
+        e.dataTransfer.setData("imgSrc", e.target.src);
       });
     });
-    canvas.addEventListener('dragover', e => e.preventDefault());
-    canvas.addEventListener('drop', e => {
+
+    canvas.addEventListener("dragover", e => e.preventDefault());
+
+    canvas.addEventListener("drop", e => {
       e.preventDefault();
-      const src = e.dataTransfer.getData('src');
-      const img = document.createElement('img');
-      img.src = src;
-      img.style.width = '60px';
-      img.style.position = 'absolute';
-      img.style.left = `${e.offsetX}px`;
-      img.style.top = `${e.offsetY}px`;
-      canvas.appendChild(img);
+      const type = e.dataTransfer.getData("type");
+      const imgSrc = e.dataTransfer.getData("imgSrc");
+
+      const el = document.createElement("div");
+      el.className = "element";
+      el.style.left = `${e.offsetX - 40}px`;
+      el.style.top = `${e.offsetY - 40}px`;
+      el.style.zIndex = zIndex++;
+
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      el.appendChild(img);
+      canvas.appendChild(el);
+
+      makeElementDraggable(el);
     });
+
+    function makeElementDraggable(el) {
+      let offsetX, offsetY, resizing = false;
+
+      el.addEventListener("mousedown", e => {
+        if (e.shiftKey) {
+          resizing = true;
+        } else {
+          resizing = false;
+        }
+        offsetX = e.clientX - el.offsetLeft;
+        offsetY = e.clientY - el.offsetTop;
+        document.onmousemove = dragMouseMove;
+        document.onmouseup = stopDrag;
+      });
+
+      function dragMouseMove(e) {
+        if (resizing) {
+          el.style.width = `${e.clientX - el.offsetLeft}px`;
+          el.style.height = `${e.clientY - el.offsetTop}px`;
+        } else {
+          el.style.left = `${e.clientX - offsetX}px`;
+          el.style.top = `${e.clientY - offsetY}px`;
+        }
+      }
+
+      function stopDrag() {
+        document.onmousemove = null;
+        document.onmouseup = null;
+      }
+    }
+
+    function clearCanvas() {
+      canvas.innerHTML = "";
+    }
   </script>
 </body>
 </html>
