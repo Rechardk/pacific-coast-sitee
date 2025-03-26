@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Design Your Patio - Pricing Enabled</title>
+  <title>Design Your Patio - Snap to Grid</title>
   <style>
     body { margin: 0; font-family: sans-serif; }
     nav { background: #008b8b; padding: 10px; text-align: center; }
@@ -14,10 +14,11 @@
       background: #f0f0f0;
       padding: 10px;
       display: flex;
-      gap: 15px;
-      justify-content: center;
-      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
       border-bottom: 2px solid #ccc;
+      align-items: center;
+      justify-content: flex-start;
     }
 
     .toolbar img {
@@ -40,19 +41,24 @@
       height: 70vh;
       background: #e8f5f5;
       overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 100px);
+      grid-auto-rows: 100px;
+      gap: 10px;
+      padding: 10px;
+      justify-content: start;
+      align-content: start;
     }
 
     .element {
-      position: absolute;
-      width: 80px;
-      height: 80px;
+      width: 100px;
+      height: 100px;
       border: 2px solid #008b8b;
       background: white;
       display: flex;
       justify-content: center;
       align-items: center;
       border-radius: 6px;
-      cursor: move;
     }
 
     .element img {
@@ -61,29 +67,14 @@
       object-fit: contain;
     }
 
-    .summary {
-      padding: 20px;
-      background: #fff;
-      border-top: 2px solid #ccc;
-      font-size: 1.1em;
+    .label {
+      font-size: 0.75em;
+      text-align: center;
+      color: #333;
     }
 
-    .summary h3 {
-      color: #008b8b;
-    }
-
-    .summary ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .summary li {
-      margin: 5px 0;
-    }
-
-    .total {
-      font-weight: bold;
-      color: #006666;
+    .icon-block {
+      text-align: center;
     }
   </style>
 </head>
@@ -94,40 +85,21 @@
   </nav>
 
   <div class="toolbar">
-    <img src="https://cdn-icons-png.flaticon.com/512/2356/2356932.png" draggable="true" data-type="chair" title="Chair ($150)" />
-    <img src="https://cdn-icons-png.flaticon.com/512/2356/2356929.png" draggable="true" data-type="table" title="Table ($400)" />
-    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046876.png" draggable="true" data-type="umbrella" title="Umbrella ($200)" />
-    <img src="https://cdn-icons-png.flaticon.com/512/2331/2331970.png" draggable="true" data-type="paver" title="Paver ($100)" />
-    <button class="reset-btn" onclick="clearCanvas()">Reset Canvas</button>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/2356/2356932.png" draggable="true" data-type="Chair"><div class="label">Chair</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/2356/2356929.png" draggable="true" data-type="Table"><div class="label">Table</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/1046/1046876.png" draggable="true" data-type="Umbrella"><div class="label">Umbrella</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/1688/1688425.png" draggable="true" data-type="Pergola"><div class="label">Pergola</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/3082/3082032.png" draggable="true" data-type="Firepit"><div class="label">Firepit</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/4461/4461452.png" draggable="true" data-type="BBQ"><div class="label">BBQ</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/1869/1869592.png" draggable="true" data-type="Gravel"><div class="label">Gravel</div></div>
+    <div class="icon-block"><img src="https://cdn-icons-png.flaticon.com/512/2933/2933183.png" draggable="true" data-type="Pool Tile"><div class="label">Pool Tile</div></div>
+    <button class="reset-btn" onclick="clearCanvas()">Reset</button>
   </div>
 
   <div id="canvas"></div>
 
-  <div class="summary">
-    <h3>Your Patio Estimate:</h3>
-    <ul id="itemList"></ul>
-    <p class="total" id="totalPrice">Total: $0</p>
-  </div>
-
   <script>
     const canvas = document.getElementById("canvas");
-    const itemList = document.getElementById("itemList");
-    const totalPrice = document.getElementById("totalPrice");
-    let zIndex = 1;
-
-    const prices = {
-      chair: 150,
-      table: 400,
-      umbrella: 200,
-      paver: 100
-    };
-
-    const itemCounts = {
-      chair: 0,
-      table: 0,
-      umbrella: 0,
-      paver: 0
-    };
 
     document.querySelectorAll(".toolbar img").forEach(item => {
       item.addEventListener("dragstart", e => {
@@ -145,69 +117,15 @@
 
       const el = document.createElement("div");
       el.className = "element";
-      el.style.left = `${e.offsetX - 40}px`;
-      el.style.top = `${e.offsetY - 40}px`;
-      el.style.zIndex = zIndex++;
 
       const img = document.createElement("img");
       img.src = imgSrc;
       el.appendChild(img);
       canvas.appendChild(el);
-
-      itemCounts[type]++;
-      updateSummary();
-      makeElementDraggable(el);
     });
-
-    function updateSummary() {
-      itemList.innerHTML = "";
-      let total = 0;
-      for (let type in itemCounts) {
-        if (itemCounts[type] > 0) {
-          const li = document.createElement("li");
-          li.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)} x${itemCounts[type]} - $${itemCounts[type] * prices[type]}`;
-          itemList.appendChild(li);
-          total += itemCounts[type] * prices[type];
-        }
-      }
-      totalPrice.textContent = "Total: $" + total;
-    }
 
     function clearCanvas() {
       canvas.innerHTML = "";
-      for (let key in itemCounts) itemCounts[key] = 0;
-      updateSummary();
-    }
-
-    function makeElementDraggable(el) {
-      let offsetX, offsetY, resizing = false;
-
-      el.addEventListener("mousedown", e => {
-        if (e.shiftKey) {
-          resizing = true;
-        } else {
-          resizing = false;
-        }
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-        document.onmousemove = dragMouseMove;
-        document.onmouseup = stopDrag;
-      });
-
-      function dragMouseMove(e) {
-        if (resizing) {
-          el.style.width = `${e.clientX - el.offsetLeft}px`;
-          el.style.height = `${e.clientY - el.offsetTop}px`;
-        } else {
-          el.style.left = `${e.clientX - offsetX}px`;
-          el.style.top = `${e.clientY - offsetY}px`;
-        }
-      }
-
-      function stopDrag() {
-        document.onmousemove = null;
-        document.onmouseup = null;
-      }
     }
   </script>
 </body>
